@@ -21,7 +21,6 @@ on:
   workflow_dispatch:
 jobs:
   build-documentation:
-    if: github.repository == 'apache/flink-kubernetes-operator'
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1
@@ -36,17 +35,18 @@ jobs:
       - name: Set branch environment variable
         run: |
           git branch --show-current
-          ls
           currentBranch=$(git branch --show-current)
           echo "flink_branch=${currentBranch}"
           echo "flink_branch=${currentBranch}" >> ${GITHUB_ENV}
-          if [ "${currentBranch} = "main" ]; then
+          if [ "${currentBranch}" = "main" ]; then
+            echo "We are on main..."
             echo "flink_alias=release-1.0" >> ${GITHUB_ENV}
-          elif [ "${currentBranch} = "release-0.1" ]; then
+          elif [ "${currentBranch}" = "release-0.1" ]; then
             echo "flink_alias=stable" >> ${GITHUB_ENV}
           fi
       - name: Build documentation
         run: |
+          env
           docker run  --rm --volume "$PWD:/root/flink-kubernetes-operator" chesnay/flink-ci:java_8_11 bash -c "cd /root/flink-kubernetes-operator && ./.github/workflows/docs.sh"
       - name: Upload documentation
         uses: burnett01/rsync-deployments@5.2
